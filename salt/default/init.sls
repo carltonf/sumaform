@@ -18,12 +18,17 @@ include:
 file_swap:
   cmd.run:
     - name: |
-        {% if grains['os_family'] == 'RedHat' %}dd if=/dev/zero of=/extra_swapfile bs=1048576 count={{ grains['swap_file_size'] }}{% else %}fallocate --length {{ grains['swap_file_size'] }}MiB /extra_swapfile{% endif %}
-        chmod 0600 /extra_swapfile
-        mkswap /extra_swapfile
-    - creates: /extra_swapfile
+        mkdir -p /var/swap
+        truncate -s 0 /var/swap/swapfile
+        chattr +C /var/swap/swapfile 2>/dev/null || true
+        dd if=/dev/zero of=/var/swap/swapfile bs=1M count={{ grains["swap_file_size"] }}
+        chmod 0600 /var/swap/swapfile
+        mkswap /var/swap/swapfile
+        chmod 0600 /var/swap/swapfile
+        mkswap /var/swap/swapfile
+    - creates: /var/swap/swapfile
   mount.swap:
-    - name: /extra_swapfile
+    - name: /var/swap/swapfile
     - persist: true
     - require:
       - cmd: file_swap
