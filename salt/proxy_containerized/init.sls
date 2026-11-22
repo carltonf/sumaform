@@ -1,6 +1,13 @@
 include:
   - repos
 
+salt_minion_masterless_proxy_containerized:
+  file.managed:
+    - name: /etc/venv-salt-minion/minion.d/90-masterless.conf
+    - makedirs: True
+    - contents: |
+        file_client: local
+
 ssh_private_key_proxy_containerized:
   file.managed:
     - name: /root/.ssh/id_ed25519
@@ -37,6 +44,8 @@ ssh_config_proxy_containerized:
 # Note: In our registries we don't have released and not released versions at this point in time
 {% if grains.get('container_registry') %}
   {% set container_registry = grains.get('container_registry') %}
+{% else %}
+  {% set container_registry = '' %}
 {% endif %}
 
 {% if grains.get('container_tag') %}
